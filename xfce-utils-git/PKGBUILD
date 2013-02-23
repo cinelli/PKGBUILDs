@@ -1,0 +1,43 @@
+# Contributor: Baurzhan Muftakhidinov <baurthefirst@gmail.com>
+# Maintainer:  Federico Cinelli <cienlli.federico@gmail.com>
+
+pkgname=xfce-utils-git
+pkgver=20121208
+pkgrel=1
+pkgdesc="Utilities for Xfce"
+arch=('any')
+license=('GPL2')
+url="http://www.xfce.org/"
+groups=('xfce4-git')
+depends=("libxfce4ui-git" 'hicolor-icon-theme')
+makedepends=('git' 'pkgconfig' 'intltool')
+optdepends=('perl: enables migration script for 4.4 configuration files')
+options=('!libtool')
+install=xfce-utils.install
+
+_gitroot="git://git.xfce.org/xfce/xfce-utils"
+_gitname="xfce-utils"
+
+build() {
+  cd $srcdir
+    
+  if [[ -d "$_gitname" ]] ; then
+    cd "$_gitname" && git pull origin
+    msg "The local files are updated."
+  else
+    git clone "$_gitroot"
+  fi
+
+  msg "GIT checkout done or server timeout"
+  msg "Starting make..."
+
+  rm -rf "$srcdir/$_gitname-build"
+  cp -r "$srcdir/$_gitname" "$srcdir/$_gitname-build"
+  cd "$srcdir/$_gitname-build"
+
+  ./autogen.sh
+  make
+}
+package() {
+  make -C "$srcdir/$_gitname-build" PREFIX=/usr DESTDIR="$pkgdir" install
+}

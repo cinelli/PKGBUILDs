@@ -1,0 +1,44 @@
+# Maintainer: Federico Cinelli <cinelli.federico@gmail.com>
+
+pkgname=xf86-input-mouse-git
+pkgver=20121207
+pkgrel=1
+pkgdesc="X.org mouse input driver"
+arch=(i686 x86_64)
+license=('custom')
+url="http://xorg.freedesktop.org/"
+depends=('glibc')
+makedepends=('pkgconfig' 'xorg-server-git')
+options=('!libtool')
+groups=('xorg' 'xorg-input-drivers')
+provides=('xf86-input-mouse' 'xf86-input-mouse-git')
+conflicts=('xf86-input-mouse')
+replaces=('xf86-input-mouse')
+
+_gitroot="git://anongit.freedesktop.org/git/xorg/driver/xf86-input-mouse"
+_gitname="xf86-input-mouse"
+
+build() {
+
+ msg "Connecting to git.freedesktop.org GIT server...."
+
+  if [[ -d "$_gitname" ]] ; then
+    cd "$_gitname" && git pull origin
+    msg "The local files are updated."
+  else
+    git clone "$_gitroot" "$_gitname"
+  fi
+
+  msg "GIT checkout done or server timeout"
+  msg "Starting make..."
+
+  rm -rf "$srcdir/$_gitname-build"
+  cp -r "$srcdir/$_gitname" "$srcdir/$_gitname-build"
+  cd "$srcdir/$_gitname-build"
+
+  ./autogen.sh
+  make
+}
+package() {
+  make -C "$srcdir/$_gitname-build" PREFIX=/usr  DESTDIR=$pkgdir install
+}

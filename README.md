@@ -1,1 +1,1 @@
-Archlinux AUR PKGBUILDs
+Arch Linux User Repository PKGBUILDs

@@ -1,0 +1,18 @@
+# Maintainer: Federico Cinelli <cinelli.federico@gmail.com> 
+pkgname=audacious-vumeter
+pkgver=1.0.1
+pkgrel=1
+pkgdesc="VU meter plugin for Audacious"
+_realname=analog-vu-meter-plugin
+arch=('i686' 'x86_64')
+url="http://vumeterplugin.sourceforge.net/"
+license=('GPL')
+depends=('audacious')
+source=("http://downloads.sourceforge.net/project/vumeterplugin/Plugin%20for%20Audacious/analog-vu-meter-plugin-1.0.1.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fvumeterplugin%2Ffiles%2Flatest%2Fdownload%3Fsource%3Dfiles&ts=1359503314&use_mirror=iweb")
+md5sums=('061ead5d0392951d9617de0f1fb9af7b')
+
+build() {
+  cd $srcdir/$_realname-$pkgver
+  ./configure 
+  make -C "$srcdir/$_realname-$pkgver" PREFIX=/usr DESTDIR="$pkgdir" install
+}

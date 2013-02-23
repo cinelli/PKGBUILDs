@@ -1,0 +1,18 @@
+# Maintainer: Federico Cinelli <cinelli.federico@gmail.com>
+
+pkgname=dirdiff
+pkgver=2.1
+pkgrel=2
+pkgdesc="Graphical tool to display differences between files in directories."
+arch=('any')
+source=(http://samba.org/ftp/paulus/${pkgname}-${pkgver}.tar.gz)
+depends=('tk')
+md5sums=('fb3f4c764093a156ac09bd79754723a9')
+license=(GPL)
+url="http://samba.org/ftp/paulus/"
+
+package() {
+  cd "$srcdir/$pkgname-$pkgver"
+  
+  install -Dm755 dirdiff "$pkgdir/usr/bin/dirdiff"
+}

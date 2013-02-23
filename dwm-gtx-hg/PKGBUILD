@@ -1,0 +1,42 @@
+# Contributor: Thomas Dahms <thdahms@gmx.de>
+# Maintainer: Federico Cinelli <cinelli.federico@gmail.com>
+
+pkgname='dwm-gtx-hg'
+pkgver=1434
+pkgrel=1
+pkgdesc="The latest hg pull of dwm-gtx, a branch of dwm, with improved layouts and Xinerama support"
+url="http://s01.de/~gottox/index.cgi/proj_dwm"
+license=('MIT')
+arch=('any')
+depends=('libx11')
+makedepends=('mercurial' 'sed')
+conflicts=('dwm' 'dwm-hg' 'dwm-gtx')
+provides=('dwm' 'dwm-gtx')
+
+_hgroot='http://s01.de/~gottox/hg'
+_hgrepo='dwm'
+
+build() {
+  cd "$srcdir/src"
+
+  if [ -d "$_hgrepo" ]; then
+    cd "$_hgrepo"
+    hg pull -u
+    msg "The local files are updated"
+  else
+    hg clone "$_hgroot/$_hgrepo"
+  fi
+  
+  msg "Mercurial checkout done or server timeout"
+  msg "Starting make"
+
+  rm -rf "$srcdir/$_hgrepo-build"
+  cp -r "$srcdir/$_hgrepo" "$srcdir/$_hgrepo-build"
+  cd "$srcdir/$_hgrepo-build"
+  
+  sed -i "s|^PREFIX =.*|PREFIX = /usr|" config.mk
+  sed -i "s|^X11INC =.*|X11INC = /usr/include/X11|" config.mk
+  sed -i "s|^X11LIB =.*|X11LIB = /usr/lib/X11|" config.mk
+
+  make && make PREFIX="$srcdir/pkg/usr" install
+}

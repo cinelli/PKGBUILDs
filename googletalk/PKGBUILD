@@ -1,0 +1,23 @@
+# Maintainer: lspci <
+# Maintainer: Federico Cinelli <cinelli.federico@gmail.com>
+
+pkgname=googletalk
+pkgver=0.1
+pkgrel=4
+pkgdesc="Google talk is a simple plasmoid using Iphone webpage of gtalk."
+url="http://www.kde-look.org/content/show.php/google+talk?content=100704"
+arch=('any')
+license=(GPL)
+depends=('qt' 'kdebase-lib' )
+makedepends=('automoc4') 
+groups=()
+source=(http://www.kde-look.org/CONTENT/content-files/100704-googletalk.tar.gz)
+md5sums=(0d694019a649e82f6f4bb7592adc6e48)
+
+build() {
+  cd $srcdir/googletalk
+  mkdir -p build
+  cd build
+  cmake -DCMAKE_INSTALL_PREFIX=`kde4-config --prefix` -DCMAKE_BUILD_TYPE=release ..
+  make && make DESTDIR=$pkgdir install
+}

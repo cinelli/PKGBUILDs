@@ -1,0 +1,22 @@
+# Contributor: Trizen <trizenx at gmail dot com>
+# Maintainer: Federico Cinelli <cinelli.federico@gmail.com>
+
+pkgname=velox
+pkgver=0.0.3
+pkgrel=1
+pkgdesc="Simple window manager inspired by awesome, xmonad, and dwm that uses XCB"
+arch=('any')
+url="http://www.ohloh.net/p/velox-wm"
+license=('GPL2')
+depends=('xcb-ewmh' 'libyaml' 'libmpdclient' 'cmake')
+optdepends=()
+source=(https://github.com/downloads/michaelforney/$pkgname/$pkgname-$pkgver.tar.bz2)
+md5sums=('0eda26856cdc9fbc68593b6b360970db')
+
+build() {
+  cd "$srcdir"
+  cmake "$pkgname-$pkgver"
+  make
+  make DESTDIR="$pkgdir" install
+  mv "$pkgdir/usr/local/*" "$pkgdir/usr/"
+}
