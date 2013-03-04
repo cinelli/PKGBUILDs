@@ -7,7 +7,7 @@ pkgdesc="Library for manipulating WINE prefixes. Part of WineGame."
 arch=('any')
 url="http://code.google.com/p/winegame/"
 license=('LGPL2.1')
-depends=('qt' 'fuseiso' 'wine' 'winetricks')
+depends=('qt4' 'fuseiso' 'wine' 'winetricks')
 makedepends=('make' 'cmake' 'git')
 conflicts=('winestuff' 'winegame')
 
