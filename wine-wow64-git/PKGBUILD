@@ -1,8 +1,5 @@
 # $Id$
 # Maintainer: Federico Cinelli <cinelli.federico@gmail.com>
-# Contributor: Sven-Hendrik Haase <sh@lutzhaase.com>
-# Contributor: Eduardo Romero <eduardo@archlinux.org>
-# Contributor: Giovanni Scafora <giovanni@archlinux.org>
 
 pkgname=wine-wow64-git
 pkgver=20120216
@@ -13,7 +10,7 @@ arch=(i686 x86_64)
 license=(LGPL)
 install=wine.install
 depends=('fontconfig' 'libxcursor' 'libxrandr' 'libxdamage' 'libxi' 'gettext' 'desktop-file-utils')
-makedepends=('gcc>=4.5.0''git' 'autoconf' 'ncurses' 'bison' 'perl' 'fontforge' 'flex' 'prelink' 'giflib' 'libxinerama' 'libxcomposite' 'libxmu' 'libxxf86' 'libxml2' 'libldap' 'lcms' 'mg123' 'openal' 'v4l-utils' 'alsa-lib' 'oss' 'mesa-libgl')
+makedepends=('gcc>=4.5.0' 'git' 'autoconf' 'ncurses' 'bison' 'perl' 'fontforge' 'flex' 'prelink' 'giflib' 'libxinerama' 'libxcomposite' 'libxmu' 'libxxf86vm' 'libxml2' 'libldap' 'lcms' 'mpg123' 'openal' 'v4l-utils' 'alsa-lib' 'oss' 'mesa-libgl')
 optdepends=('giflib' 'libpng' 'libldap' 'gnutls' 'lcms' 'mpg123' 'openal' 'v4l-utils' 'libpulse' 'alsa-plugins' 'alsa-lib' 'oss')
 provides=('wine')
 conflicts=('wine')
@@ -23,9 +20,9 @@ _gitname=wine
 
 if [[ "$CARCH" == "x86_64" ]]; then
   depends+=('lib32-fontconfig' 'lib32-libxcursor' 'lib32-libxrandr' 'lib32-libxdamage' 'lib32-libxi' 'lib32-gettext')
-  makedepends+=('gcc-multilib>=4.5.0' 'lib32-giflib' 'lib32-libpng' 'lib32-gnutls' 'lib32-xinerama' 'lib32-libxcomposite' 'lib32-libxmu' 'lib32-libxxf86vm' 'lib32-libxml2' 'lib32-libldap' 'lib32-lcms' 'lib32-mpg123' 'lib32-openal' 'lib32-v4l-utils' 'lib32-alsa-lib' 'lib32-mesa-lib32')
+  makedepends+=('gcc-multilib>=4.5.0' 'lib32-giflib' 'lib32-libpng' 'lib32-gnutls' 'lib32-libxinerama' 'lib32-libxcomposite' 'lib32-libxmu' 'lib32-libxxf86vm' 'lib32-libxml2' 'lib32-libldap' 'lib32-lcms' 'lib32-mpg123' 'lib32-openal' 'lib32-v4l-utils' 'lib32-alsa-lib' 'lib32-mesa-libgl')
   optdepends+=('lib32-giflib' 'lib32-libpng' 'lib32-libldap' 'lib32-gnutls' 'lib32-lcms' 'lib32-mpg123' 'lib32-openal' 'lib32-v4l-utils' 'lib32-libpulse' 'lib32-alsa-plugins' 'lib32-alsa-lib' 'cups')
-  provides('wine' 'bin32-wine' 'wine-wow64')
+  provides=('wine' 'bin32-wine' 'wine-wow64')
   conflicts=('wine' 'bin32-wine' 'wine-wow64')
 fi
 
@@ -36,55 +33,58 @@ build() {
     cd "$_gitname" && git pull origin
     msg "The local file are updated"
   else
-    git clone "$_gitroot $_gitname"
+    git clone "$_gitroot" "$_gitname"
   fi
 
   msg "GIT checkout done or server timeout"
   msg "Starting make..."
 
   rm -rf "$_gitname-$CARCH-build"
-  mkdir "$_gitname-$CARCH-build"
+  cp -r "$srcdir/$_gitname" "$srcdir/$_gitname-build"
+  cd "$srcdir/$_gitname-build"
 
   # These additional CFLAGS solve FS#27662
   export CFLAGS="$CFLAGS/-D_FORTIFY_SOURCE=2/ -D_FORTIFY_SOURCE=0"
   export CXXFLAGS="$CFLAGS/-D_FORTIFY_SOURCE=2/ -D_FORTIFY_SOURCE=0"
-}
-# Build & package x86_64 architecture
-if [[ "$CARCH" == "x86_64" ]]; then
-  build() {
-    cd "$srcdir/$_gitname-$CARCH-build"
-
-    "$srcdir/$_gitname/configure --prefix=/usr --sysconfdir=/etc --libdir=/usr/lib --with-x --enable-win64"
+  
+  if [[ "$CARCH" == "x86_64" ]]; then
+    ./configure --prefix=/usr \
+      --sysconfdir=/etc \
+      --libdir=/usr/lib \
+      --with-x \
+      --enable-wine64
     make
     
     export PKG_CONFIG_PATH="/usr/lib32/pkgconfig"
-    cd "$srcdir/$_gitname-i686-build"
+    cd "$srcdir/$_gitname-build"
     
-    "$srcdir/$_gitname/configure --prefix/usr --sysconfdir=/etc --with-x --libdir=/usr/lib32 --with-wine64="$srcdir/$_gitname-$CARCH-build""
-  }
-  package() {
-    msg "Packaging WINE-$CARCH..."
-    cd "$srcdir/$gitname-$CARCH-build"
-    make prefix="$pkgdir/usr" libdir="$pkgdir/usr/lib" dlldir="$pkgdir/usr/lib/wine" install
-  }
+    ./configure \
+      --prefix=/usr \
+      --sysconfdir=/etc \
+      --with-x \
+      --libdir=/usr/lib32 \
+      --with-wine64="$srcdir/$_gitname-build"
+else
+  ./configure \
+    --prefix=/usr \
+    --sysconfig=/etc \
+    --with-x \
+    --libdir=/usr/lib
 
-else 
-  #Build and package i686
-  build() {
-    msg "Building Wine-$CARCH..."
-    cd "$srcdir/$_gitname-$CARCH-build"
+  # Additional CFLAGS solve FS#27560
+  make CFLAGS+="-mstrackrealign" CXXFLAGS+="-mstrackrealign"
+fi
+}
+package() {
+  if [[ "$CARCH" == "x86_64" ]]; then
+    cd "$srcdir/$_gitname-build"
     
-    "$srcdir/$_gitname/configure --prefix=/usr --sysconfdir=/etc --with-x --libdir=/usr/lib"
-
-    # These additional CFLAGS solve FS#27560
-    make CFLAGS+="-mstackrealign" CXXFLAGS+="-mstackrealign"
-  }
-  
-  package() {
-    msg "Packaging Wine-$CARCH..."
-    cd "$srcdir/$_gitname-$CARCH-build"
-    
+    make prefix="$pkgdir/usr" \
+      libdir="$pkgdir/usr/lib" \
+      dlldir="$pkgdir/usr/lib/wine" install
+else
+    cd "$srcdir/$_gitname-build"
     make prefix="$pkgdir/usr" install
-    }
-
+  fi
+}
 # vim:set ts=8 sts=2 sw=2 et:
